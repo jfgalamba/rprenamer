@@ -157,3 +157,5 @@ dmypy.json
 ./qt/dados/
 ./qt/files/
 ./qt/pics/
+
+/_pics
