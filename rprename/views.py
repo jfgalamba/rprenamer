@@ -13,6 +13,19 @@ from PySide6.QtWidgets import QFileDialog, QWidget
 
 from .ui.window import Ui_Window
 
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+# ADDED: added the following lines to avoid having to compile the 'ui'
+# file manually each time we change it in the designer.
+
+from .utils import compile_ui_if_needed_or_exit
+
+UI_FILE_PATH = f'rprename/ui/window.ui'
+UI_CLASS_FILE_PATH = f'rprename/ui/window.py'
+
+compile_ui_if_needed_or_exit(UI_FILE_PATH, UI_CLASS_FILE_PATH)
+
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
 class Window(QWidget, Ui_Window):
     def __init__(self):
         super().__init__()
