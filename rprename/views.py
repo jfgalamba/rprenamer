@@ -12,6 +12,7 @@ from PySide6.QtCore import QThread
 from PySide6.QtWidgets import QFileDialog, QWidget, QMessageBox
 
 from .ui.window import Ui_Window
+from .rename import Renamer
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # ADDED: added the following lines to avoid having to compile the 'ui'
@@ -89,6 +90,18 @@ class Window(QWidget, Ui_Window):
     #:
 
     def _run_renamer_thread(self):
-        
+        prefix = self.prefixEdit.text()
+        self._renamer = Renamer(
+            files = deque(self._files),
+            prefix = prefix,
+        )
+
+        self._renamer.renamedFile.connect(self._update_state_when_file_renamed)
+        self._renamer.rename_files()
     #:
+
+    def _update_state_when_file_renamed(self, newFile: Path):
+        self._files.popleft()
+        self.srcFileList.takeItem(0)
+        self.dstFileList.addItem(str(newFile))
 #:
