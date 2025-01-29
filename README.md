@@ -9,4 +9,4 @@ As mentioned in [Real Python ](https://realpython.com/bulk-file-rename-tool-pyth
 >    tutorial is for you.
 
 This code "improves" on the example given in RealPython, by providing a 
-`ThreadedRenamer` and an `AsyncRenamer` (using qasync).
+`ThreadedRenamer` and an `AsyncRenamer` (using `qasync`).
