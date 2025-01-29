@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# rprename/views.py
+# rprename/views0.py
 
 """
 This module provides the RP Renamer main window.
@@ -8,11 +8,11 @@ This module provides the RP Renamer main window.
 from collections import deque
 from pathlib import Path
 
-import qasync
+from PySide6.QtCore import QThread
 from PySide6.QtWidgets import QFileDialog, QWidget
 
 from .ui.window import Ui_Window
-from .rename import AsyncRenamer
+from .rename0 import Renamer
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # ADDED: added the following lines to avoid having to compile the 'ui'
@@ -26,6 +26,7 @@ UI_CLASS_FILE_PATH = f'rprename/ui/window.py'
 compile_ui_if_needed_or_exit(UI_FILE_PATH, UI_CLASS_FILE_PATH)
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
 
 FILTERS = ';;'.join(
     (
@@ -77,22 +78,29 @@ class Window(QWidget, Ui_Window):
             self._update_state_when_files_loaded()
     #:
 
-    @qasync.asyncSlot()
-    async def rename_files(self):
+    def rename_files(self):
+        self._run_renamer_thread()
         self._update_state_while_renaming()
-        await self._start_renamer()
     #:
 
-    async def _start_renamer(self):
+    def _run_renamer_thread(self):
         prefix = self.prefixEdit.text()
-        self._renamer = AsyncRenamer(
+        self._renamer = Renamer(
             files = tuple(self._files),
             prefix = prefix,
-            onProgressed = self._update_progress_bar,
-            onRenamedFile = self._update_state_when_file_renamed,
-            onFinished = self._update_state_when_no_files,
         )
-        await self._renamer.rename_files()
+
+        self._renamer.progressed.connect(self._update_progress_bar)
+        self._renamer.renamedFile.connect(self._update_state_when_file_renamed)
+        self._renamer.finished.connect(self._renamer.deleteLater)
+        self._renamer.finished.connect(self._update_state_when_no_files)
+
+        self._thread = QThread()
+        self._thread.started.connect(self._renamer.rename_files)
+        self._thread.finished.connect(self._thread.deleteLater)
+        self._renamer.moveToThread(self._thread)
+        self._renamer.finished.connect(self._thread.quit)
+        self._thread.start()
     #:
 
     def _update_state_when_no_files(self):

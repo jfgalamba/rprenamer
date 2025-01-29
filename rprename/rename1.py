@@ -7,12 +7,10 @@ multiple files.
 """
 
 import time
-import asyncio
 from pathlib import Path
 from typing import Any, Callable, Iterable
 
 from PySide6.QtCore import QObject, Signal, QThread
-import aiofiles.os
 
 from .utils import ensure_iterable
 
@@ -21,7 +19,6 @@ type QtSlot = Callable[..., Any]
 type QtSlots = QtSlot | Iterable[QtSlot]
 
 
-# WARNING: This is an ABC. Don't instantiate this class
 class Renamer(QObject):
     # Define custom signals
     progressed = Signal(int)
@@ -51,9 +48,7 @@ class Renamer(QObject):
         if deleteLaterOnFinished:
             self.finished.connect(self.deleteLater)
     #:
-#:
 
-class SyncRenamer(Renamer):
     def rename_files(self):
         for file_number, file in enumerate(self._files, 1):
             new_file = file.parent.joinpath(
@@ -67,7 +62,7 @@ class SyncRenamer(Renamer):
     #:
 #:
 
-class ThreadedRenamer(SyncRenamer):
+class ThreadedRenamer(Renamer):
     def __init__(self, *args, start = False, **kargs):
         super().__init__(*args, **kargs)
         self._thread = QThread()
@@ -84,16 +79,7 @@ class ThreadedRenamer(SyncRenamer):
     #:
 #:
 
-class AsyncRenamer(Renamer):
-    async def rename_files(self):
-        for file_number, file in enumerate(self._files, 1):
-            new_file = file.parent.joinpath(
-                f'{self._prefix}{file_number}{file.suffix}'
-            )
-            await aiofiles.os.rename(file, new_file)
-            await asyncio.sleep(1.1)   # Let's slow down a bit (comment this for the process to go faster)
-            self.progressed.emit(file_number)
-            self.renamedFile.emit(new_file)
-        self.finished.emit()
-    #:
-#:
+# ThreadedRenamer(['alb', 'dasda'], 23, prefix = 'XPTO')
+
+# args = (['alb', 'dasda'], 23)
+# kargs = {'prefix': 'XPTO'}

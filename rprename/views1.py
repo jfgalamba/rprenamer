@@ -8,11 +8,11 @@ This module provides the RP Renamer main window.
 from collections import deque
 from pathlib import Path
 
-import qasync
+from PySide6.QtCore import Slot
 from PySide6.QtWidgets import QFileDialog, QWidget
 
 from .ui.window import Ui_Window
-from .rename import AsyncRenamer
+from .rename1 import ThreadedRenamer
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 # ADDED: added the following lines to avoid having to compile the 'ui'
@@ -26,6 +26,7 @@ UI_CLASS_FILE_PATH = f'rprename/ui/window.py'
 compile_ui_if_needed_or_exit(UI_FILE_PATH, UI_CLASS_FILE_PATH)
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
 
 FILTERS = ';;'.join(
     (
@@ -77,22 +78,21 @@ class Window(QWidget, Ui_Window):
             self._update_state_when_files_loaded()
     #:
 
-    @qasync.asyncSlot()
-    async def rename_files(self):
+    def rename_files(self):
+        self._start_renamer()
         self._update_state_while_renaming()
-        await self._start_renamer()
     #:
 
-    async def _start_renamer(self):
+    def _start_renamer(self):
         prefix = self.prefixEdit.text()
-        self._renamer = AsyncRenamer(
+        self._renamer = ThreadedRenamer(
             files = tuple(self._files),
             prefix = prefix,
             onProgressed = self._update_progress_bar,
             onRenamedFile = self._update_state_when_file_renamed,
             onFinished = self._update_state_when_no_files,
+            start = True,
         )
-        await self._renamer.rename_files()
     #:
 
     def _update_state_when_no_files(self):

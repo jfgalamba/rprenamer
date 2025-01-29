@@ -10,7 +10,7 @@ import sys
 import json
 import importlib
 from subprocess import run as run_proc
-import os, shutil, tempfile
+import shutil, tempfile
 from typing import Iterable
 
 from PySide6.QtCore import Qt
